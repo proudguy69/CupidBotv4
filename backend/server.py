@@ -16,6 +16,7 @@ class ProfileBase(BaseModel):
     sexuality : str
 
 
+# this just defines the lifespan on the app, like an event, so this runs on startup, then yeilds to shutdown.
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
