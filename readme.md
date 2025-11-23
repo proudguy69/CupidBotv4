@@ -10,3 +10,6 @@ the bot will use [discord.py](https://discordpy.readthedocs.io/en/stable/)
 this will live in the bot/ folder
 bot/bot.py will be where the CupidBot class exists
 bot/extentions/ will be a folder with all the bots extensions / "modules"
+
+feel free to use insomnia to test the api
+this project does use postgres sql, so assume asyncpg for the python module
