@@ -5,8 +5,9 @@ from tortoise.models import Model
 
 class Profile(Model):
     id = fields.IntField(primary_key=True)
-    user_id = fields.IntField()
+    user_id = fields.IntField(unique=True)
     name = fields.TextField()
+    pronouns = fields.TextField()
     age = fields.IntField()
     gender = fields.TextField()
     sexuality = fields.TextField()
@@ -15,5 +16,6 @@ class Profile(Model):
 class Auth(Model):
     id = fields.IntField(primary_key=True)
     user_id = fields.IntField()
-    access_token = fields.IntField()
+    access_token = fields.TextField()
+    web_token = fields.TextField()
     # add jwt and other here
