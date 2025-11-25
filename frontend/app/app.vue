@@ -2,7 +2,13 @@
   <NuxtPage />
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+interface User {
+  user_id: number,
+  avatar: string,
+  web_token: string
+}
 
 
 // should probably create an interface for this

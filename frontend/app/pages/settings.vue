@@ -27,14 +27,21 @@
 </template>
 
 <script setup lang="ts">
+import type { Auth } from '~/types/Auth'
+import type { User } from '~/types/User'
 
 // this is a ref
-const user_object: any = inject("user_object")
+const user_object = inject<Ref<User>>("user_object")!
 
 async function simulateAuth() {
     const response = await fetch(`http://localhost:8000/authorize?code=fake`)
-    const data = await response.json()
-    console.log(data)
+    const data:Auth = await response.json()
+    user_object.value.user_id = data.profile.user_id
+    user_object.value.avatar = data.profile.avatar
+    user_object.value.web_token = data.web_token
+
+    localStorage.setItem('web_token', data.web_token)
+    localStorage.setItem('avatar', data.profile.avatar?data.profile.avatar:'')
 }
 
 </script>
