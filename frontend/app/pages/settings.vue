@@ -44,4 +44,13 @@ async function simulateAuth() {
     localStorage.setItem('avatar', data.profile.avatar?data.profile.avatar:'')
 }
 
+onMounted(async () => {
+    const token = localStorage.getItem('web_token')
+    const avatar = localStorage.getItem('avatar')
+    if (!token) {
+        return
+    }
+    user_object.value.web_token = token
+})
+
 </script>
