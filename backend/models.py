@@ -11,6 +11,7 @@ class Profile(Model):
     age = fields.IntField()
     gender = fields.TextField()
     sexuality = fields.TextField()
+    bio = fields.TextField()
 
 # represents an auth with users discord bearer token, and a JWT token thats stored in the wev 
 class Auth(Model):
