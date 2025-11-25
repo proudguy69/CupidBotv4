@@ -1,9 +1,13 @@
 from typing import Annotated
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Header
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from database import init_db, close_db
-from models import Profile
+from models import Profile, Auth
+import jwt
+import secrets
+import random
 
 class RouteHeaders(BaseModel):
     Authorization : str
@@ -27,6 +31,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],        # allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],        # allow all HTTP methods
+    allow_headers=["*"],        # allow all headers
+)
 
 # this is just an example, may not be offical
 @app.post('/profile/create')
@@ -47,5 +58,30 @@ async def profile_create(headers:Annotated[RouteHeaders, Header()], profile:Prof
     )
 
     print(new_profile.id)
-
     return {"success": True, "profile": profile}
+
+@app.get('/authorize')
+async def authorize(code):
+    if code == "fake":
+        # simulate auth
+        profile = {
+            'user_id': random.randint   (111111111111,999999999999),
+            'avatar': None
+        }
+        access_data = {
+            'access_token': "faifhaifhashf"
+        }
+        web_token = secrets.token_urlsafe(32)
+        # would check if one already exists and update it 
+        obj = await Auth.update_or_create(
+            user_id=profile['user_id'],
+            access_token = access_data['access_token'],
+            web_token=web_token,
+            token_type='fake'
+            )
+        print(obj)
+        
+        return {'success': True, 'profile':profile, 'web_token':web_token}
+    return {'code': code}
+
+    
