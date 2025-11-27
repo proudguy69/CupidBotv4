@@ -5,9 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from database import init_db, close_db
 from models import Profile, Auth
-import jwt
+import httpx
 import secrets
 import random
+import os
+
+CLIENT_TOKEN = os.environ.get('CLIENT_TOKEN')
+CLIENT_ID = 1442284848109846598
+CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
 
 class RouteHeaders(BaseModel):
     Authorization : str
@@ -19,6 +24,24 @@ class ProfileBase(BaseModel):
     gender : str
     sexuality : str
 
+class DiscordExchange(BaseModel):
+    access_token: str
+    token_type: str
+    expires_in: int
+    refresh_token: str
+    scope: str
+
+    model_config = {
+        "populate_by_name": True
+    }
+
+class DiscordProfile(BaseModel):
+    id: str
+    username: str
+    global_name: str
+    avatar: str
+    email: str
+
 
 # this just defines the lifespan on the app, like an event, so this runs on startup, then yeilds to shutdown.
 @asynccontextmanager
@@ -28,6 +51,40 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     await close_db()
+
+async def exchange_code(code):
+    data = {
+        'client_id': CLIENT_ID,
+        'client_secret': CLIENT_SECRET,
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': 'http://localhost:3000/authorize'
+    }
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.post('https://discord.com/api/v10/oauth2/token', data=data, headers=headers)
+        data:dict = response.json()
+        if not data.get('access_token'):
+            print(data)
+            return None
+        return DiscordExchange(**data)
+    
+async def get_discord_profile(access_token) -> DiscordProfile:
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': f'Bearer {access_token}'
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get('https://discord.com/api/v10/users/@me', headers=headers)
+        data:dict = response.json()
+        profile = DiscordProfile(**data)
+        return profile
+
+
+
+
 
 
 app = FastAPI(lifespan=lifespan)
@@ -62,26 +119,17 @@ async def profile_create(headers:Annotated[RouteHeaders, Header()], profile:Prof
 
 @app.get('/authorize')
 async def authorize(code):
-    if code == "fake":
-        # simulate auth
-        profile = {
-            'user_id': random.randint   (111111111111,999999999999),
-            'avatar': None
-        }
-        access_data = {
-            'access_token': "faifhaifhashf"
-        }
-        web_token = secrets.token_urlsafe(32)
-        # would check if one already exists and update it 
-        obj = await Auth.update_or_create(
-            user_id=profile['user_id'],
-            access_token = access_data['access_token'],
-            web_token=web_token,
-            token_type='fake'
-            )
-        print(obj)
-        
-        return {'success': True, 'profile':profile, 'web_token':web_token}
-    return {'code': code}
+    exchange_data:DiscordExchange = await exchange_code(code)
+    # use the data to get a user profile
+    profile = await get_discord_profile(exchange_data.access_token)
+    web_token = secrets.token_urlsafe(32)
+    await Auth.update_or_create(
+        user_id=profile.id,
+        access_token=exchange_data.access_token,
+        web_token=web_token,
+        token_type=exchange_data.token_type
+    )
+    
+    return {'success':True, 'profile':profile.model_dump(), 'web_token':web_token}
 
     

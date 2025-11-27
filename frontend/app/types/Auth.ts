@@ -1,9 +1,8 @@
+import type { User } from "./User"
+
 export interface Auth {
     success: boolean,
-    profile: {
-        user_id: number,
-        avatar: string|null
-    },
+    profile: User,
     web_token:string,
     message:string|null
 }

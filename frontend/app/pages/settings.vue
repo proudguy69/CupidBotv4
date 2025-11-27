@@ -5,7 +5,7 @@
                 
                 <!-- The purpose of this form is to emulate user settings after auth-->
                 <UFormField label="User Id">
-                    <UInput v-model="user_object.user_id" />
+                    <UInput v-model="user_object.id" />
                 </UFormField>
 
                 <UFormField label="Profile Picture">
@@ -36,7 +36,7 @@ const user_object = inject<Ref<User>>("user_object")!
 async function simulateAuth() {
     const response = await fetch(`http://localhost:8000/authorize?code=fake`)
     const data:Auth = await response.json()
-    user_object.value.user_id = data.profile.user_id
+    user_object.value.id = data.profile.id
     user_object.value.avatar = data.profile.avatar
     user_object.value.web_token = data.web_token
 
