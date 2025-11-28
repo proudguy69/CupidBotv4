@@ -36,7 +36,16 @@ onMounted(async () => {
     }
     const response = await fetch(`http://localhost:8000/authorize?code=${code.value}`)
     const data:Auth = await response.json()
+    if (!data.success) {
+        console.log(data)
+        router.push('/')
+        return
+    }
     user_object.value = data.profile
+    localStorage.setItem('web_token', data.web_token)
+    localStorage.setItem('username', data.profile.username!)
+    localStorage.setItem('user_id', data.profile.id!)
+    localStorage.setItem('avatar', data.profile.avatar!)
     router.push('/')
 })
 

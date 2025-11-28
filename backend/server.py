@@ -2,6 +2,7 @@ from typing import Annotated
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Header
 from fastapi.middleware.cors import CORSMiddleware
+from tortoise.exceptions import DoesNotExist
 from pydantic import BaseModel
 from database import init_db, close_db
 from models import Profile, Auth
@@ -67,8 +68,8 @@ async def exchange_code(code):
         response = await client.post('https://discord.com/api/v10/oauth2/token', data=data, headers=headers)
         data:dict = response.json()
         if not data.get('access_token'):
-            print(data)
-            return None
+            return data
+        print(data)
         return DiscordExchange(**data)
     
 async def get_discord_profile(access_token) -> DiscordProfile:
@@ -119,7 +120,9 @@ async def profile_create(headers:Annotated[RouteHeaders, Header()], profile:Prof
 
 @app.get('/authorize')
 async def authorize(code):
-    exchange_data:DiscordExchange = await exchange_code(code)
+    exchange_data:DiscordExchange|dict = await exchange_code(code)
+    if type(exchange_data) != DiscordExchange:
+        return {'success':False, 'message':f'exchange failed! dump: {exchange_data}'}
     # use the data to get a user profile
     profile = await get_discord_profile(exchange_data.access_token)
     web_token = secrets.token_urlsafe(32)
@@ -129,7 +132,16 @@ async def authorize(code):
         web_token=web_token,
         token_type=exchange_data.token_type
     )
-    
     return {'success':True, 'profile':profile.model_dump(), 'web_token':web_token}
+
+
+@app.get('/authorization')
+async def check_authorization(token):
+    try:
+        auth = await Auth.get(web_token= token)
+    except DoesNotExist as error:
+        return {'success': False}
+    profile = await get_discord_profile(auth.access_token)
+    return {'success':True, 'profile':profile.model_dump()}
 
     
