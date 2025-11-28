@@ -1,2 +1,37 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap');
+
+@theme {
+  --color-primary: #A45D5D;
+  --color-secondary: #482121;
+
+  --color-bg: #EEEEEE;
+  --color-bg-alt: #ECECEC;
+  --color-text: #FFFFFF;
+
+  --color-success: #8BAA7C;
+  --color-info: #7C9EA6;
+  --color-warning: #D9B26D;
+  --color-error: #C47A7A;
+  --color-neutral: #7A7A7A;
+
+  --raley-font: "Raleway", sans-serif;
+}
+
+.background {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(#A45D5D 1px, transparent 1px),
+    radial-gradient(#A45D5D 1px, #ffffff 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 20px 20px;
+}
+
+.raley-font {
+  font-family: var(--raley-font);
+}
+
+.shadow-text {
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
+}
