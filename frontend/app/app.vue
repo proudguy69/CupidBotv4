@@ -4,9 +4,13 @@
       Cupidv4
     </template>
 
-    
+    <UNavigationMenu
+      :items="items"
+      content-orientation="veritcal"
+      />
     <template #right>
-      <UNavigationMenu :items="items" />
+      
+
       <UButton
       v-if="!user_object.username"
       variant="subtle"
@@ -40,7 +44,19 @@ import type { User } from '~/types/User'
 import type { Authorization } from './types/Authorization'
 
 const items:NavigationMenuItem[] = [
-
+  {
+    label: 'Profile',
+    children: [
+      {
+        label: 'Create',
+        to: '/profile/create'
+      },
+      {
+        label: 'edit',
+        to: '/profile/edit'
+      }
+    ]
+  }
 ]
 
 const oauth2_url = {
@@ -76,6 +92,8 @@ onMounted(async () => {
   user_object.value.id = user_id
   user_object.value.username = username
   user_object.value.avatar = avatar
+
+  avatar_url.value = `https://cdn.discordapp.com/avatars/${user_object.value.id}/${user_object.value.avatar}.png`
 
   if (username && user_id && avatar) {
     return

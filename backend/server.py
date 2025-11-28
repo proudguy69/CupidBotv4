@@ -19,11 +19,12 @@ class RouteHeaders(BaseModel):
     Authorization : str
 
 class ProfileBase(BaseModel):
-    user_id : int
     name : str
     age : int
     gender : str
+    gender_specified: str|None =None
     sexuality : str
+    bio: str
 
 class DiscordExchange(BaseModel):
     access_token: str
@@ -98,25 +99,25 @@ app.add_middleware(
 )
 
 # this is just an example, may not be offical
-@app.post('/profile/create')
-async def profile_create(headers:Annotated[RouteHeaders, Header()], profile:ProfileBase):
-    # we would call tortoise orm to create a profile if one does not exists already
+# @app.post('/profile/create')
+# async def profile_create(headers:Annotated[RouteHeaders, Header()], profile:ProfileBase):
+#     # we would call tortoise orm to create a profile if one does not exists already
 
-    # would need to verify headers
-    existing = await Profile.get_or_none(user_id=profile.user_id)
-    if existing:
-        return {"success": False, "message": "profile already exists", "profile": existing}
+#     # would need to verify headers
+#     existing = await Profile.get_or_none(user_id=profile.user_id)
+#     if existing:
+#         return {"success": False, "message": "profile already exists", "profile": existing}
     
-    new_profile = await Profile.create(
-        user_id = profile.user_id,
-        name = profile.name,
-        age = profile.age,
-        gender = profile.gender,
-        sexuality = profile.sexuality
-    )
+#     new_profile = await Profile.create(
+#         user_id = profile.user_id,
+#         name = profile.name,
+#         age = profile.age,
+#         gender = profile.gender,
+#         sexuality = profile.sexuality
+#     )
 
-    print(new_profile.id)
-    return {"success": True, "profile": profile}
+#     print(new_profile.id)
+#     return {"success": True, "profile": profile}
 
 @app.get('/authorize')
 async def authorize(code):
@@ -144,4 +145,8 @@ async def check_authorization(token):
     profile = await get_discord_profile(auth.access_token)
     return {'success':True, 'profile':profile.model_dump()}
 
-    
+@app.post('/profile/create')
+async def profile_create(headers:Annotated[RouteHeaders, Header()], profile:ProfileBase):
+    print(headers)
+    print(profile)
+    return {'success': True}
