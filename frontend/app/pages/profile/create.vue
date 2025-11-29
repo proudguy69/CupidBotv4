@@ -1,90 +1,74 @@
+<style>
+body {
+    background-color: var(--color-bg-alt);
+    font-family: 'Raleway', sans-serif;
+    background-image:
+        radial-gradient(#A45D5D 1px, transparent 1px),
+        radial-gradient(#A45D5D 1px, #ffffff 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 20px 20px;
+}
+</style>
+
 <template>
-    <UPageSection
-    title="Profile Create"
-    >
-        <UPageCard
-        variant="subtle"
-        >
-            <UForm
-            class="flex flex-col gap-2"
-            :validate="validate"
-            :state="state"
-            @submit="submit"
-            >
+    <UPageSection class="max-w-2xl mx-auto">
+        <template #header>
+            <div class="space-y-1 mb-2! text-center">
+                <h1 class="text-5xl font-semibold">Create Profile</h1>
+                <p class="text-black">Fill out the form below to create your profile</p>
+            </div>
+        </template>
+        <UPageCard variant="subtle" class="p-4 shadow-md bg-white outline outline-black">
+            <UForm class="flex flex-col gap-3" :validate="validate" :state="state" @submit="submit">
+                <h2 class="text-lg font-semibold">Personal Info</h2>
 
-                <h2>Personal Info</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <UFormField label="Name" name="name" required>
+                        <UInput placeholder="John" v-model="state.name" />
+                    </UFormField>
 
-                <UFormField label="Name" name="name" required="">
-                    <UInput
-                    placeholder="John"
-                    v-model="state.name"
-                    />
-                </UFormField>
+                    <UFormField label="Age" name="age" required>
+                        <UInputNumber :increment="false" :decrement="false" placeholder="18" v-model="state.age" />
+                    </UFormField>
+                </div>
 
-                <UFormField label="Age" name="age" required="">
-                    <UInputNumber
-                    :increment="false"
-                    :decrement="false"
-                    placeholder="18"
-                    v-model="state.age"
-                    />
-                </UFormField>
-
-                <UFormField label="Date of birth" name="dob" required="">
-                    <UInputDate
-                    v-model="state.dob"
-                    />
+                <UFormField label="Date of birth" name="dob" required>
+                    <UInputDate v-model="state.dob" class="w-full" />
                 </UFormField>
 
                 <USeparator />
 
-                <h2>Identity Information</h2>
+                <h2 class="text-lg font-semibold">Identity Information</h2>
 
-                <UFormField label="Gender" name="gender" required="">
-                    <USelect
-                    :items="genders"
-                    class="w-45"
-                    v-model="state.gender"
-                    v-if="state.gender != 'Other'"
-                    placeholder="Select"
-                    />
-                    <UFieldGroup v-if="state.gender == 'Other'">
-                        <USelect
-                        :items="genders"
-                        class="w-25"
-                        v-model="state.gender"
-                        />
-                        <UInput
-                        placeholder="Gender"
-                        class="w-25"
-                        v-model="state.gender_specified"
-                        />
-                    </UFieldGroup>
+                <UFormField label="Gender" name="gender" required>
+                    <div class="w-full">
+                        <USelect v-if="state.gender !== 'Other'" :items="genders" class="w-full" placeholder="Select"
+                            v-model="state.gender" />
+
+                        <UFieldGroup v-else class="flex gap-2 w-full">
+                            <USelect :items="genders" class="w-1/2" v-model="state.gender" />
+                            <UInput placeholder="Gender" class="w-1/2" v-model="state.gender_specified" />
+                        </UFieldGroup>
+                    </div>
                 </UFormField>
 
-                <UFormField label="Sexuality" name="sexuality" required="">
-                    <USelect
-                    :items="sexualities"
-                    class="w-45"
-                    placeholder="Select"
-                    v-model="state.sexuality"
-                    />
+                <UFormField label="Sexuality" name="sexuality" required>
+                    <USelect :items="sexualities" class="w-full" placeholder="Select" v-model="state.sexuality" />
                 </UFormField>
 
-                <UFormField label="Bio" name="bio" required="">
-                    <UTextarea
-                    class="w-full"
-                    placeholder="Hello I like to do.."
-                    minlength="200"
-                    v-model="state.bio"
-                    autoresize
-                    />
+                <UFormField label="Bio" name="bio" required>
+                    <UTextarea class="w-full" placeholder="Hello I like to do.." minlength="200" v-model="state.bio"
+                        autoresize />
                 </UFormField>
-                <UButton type="submit">Submit</UButton>
+
+                <UButton type="submit" class="self-middle text-center">Submit</UButton>
             </UForm>
         </UPageCard>
+
+        <a href="/" class="mt-0! hover:text-gray-900">Back &larr;</a>
     </UPageSection>
 </template>
+
 
 <script setup>
 
@@ -115,22 +99,22 @@ const state = reactive({
 async function validate(state) {
     const errors = []
     if (!state.name) {
-        errors.push({name: 'name', message: 'Name is required'})
+        errors.push({ name: 'name', message: 'Name is required' })
     }
     if (!state.dob) {
-        errors.push({name: 'dob', message: 'Dob is required'})
+        errors.push({ name: 'dob', message: 'Dob is required' })
     }
     if (!state.age) {
-        errors.push({name: 'age', message: 'Age is required'})
+        errors.push({ name: 'age', message: 'Age is required' })
     }
     if (!state.gender) {
-        errors.push({name: 'gender', message: 'Gender is required'})
+        errors.push({ name: 'gender', message: 'Gender is required' })
     }
     if (!state.sexuality) {
-        errors.push({name: 'sexuality', message: 'Sexuality is required'})
+        errors.push({ name: 'sexuality', message: 'Sexuality is required' })
     }
     if (!state.bio) {
-        errors.push({name: 'bio', message: 'Bio is required'})
+        errors.push({ name: 'bio', message: 'Bio is required' })
     }
     return errors
 }
