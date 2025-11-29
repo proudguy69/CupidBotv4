@@ -1,6 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap');
 @import "tailwindcss";
 @import "@nuxt/ui";
-@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap');
+
 
 @theme {
   --color-primary: #A45D5D;

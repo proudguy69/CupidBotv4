@@ -19,12 +19,13 @@
             </template>
             
             <template #links>
-                <UModal close-icon="i-lucide-x"> <!-- not working :( idk why-->
+                <UModal v-model:open="open">
                     <UButton color="secondary" icon="i-lucide-square-play" variant="solid" label="Get started" />
 
                     <template #header>
                         <h3 class="text-2xl font-semibold">Get started</h3>
                         <p class="text-gray-500">Ready to create your profile?</p>
+                        <UButton icon="i-lucide-x" class="ml-auto" @click="close"/>
                     </template>
 
                     <template #body>
@@ -58,5 +59,11 @@
 </template>
 
 <script setup lang="ts">
+
+const open = ref(false)
+
+function close() {
+    open.value = !open.value
+}
 
 </script>
