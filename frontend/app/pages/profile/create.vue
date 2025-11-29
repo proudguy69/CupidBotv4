@@ -1,15 +1,3 @@
-<style>
-body {
-    background-color: var(--color-bg-alt);
-    font-family: 'Raleway', sans-serif;
-    background-image:
-        radial-gradient(#A45D5D 1px, transparent 1px),
-        radial-gradient(#A45D5D 1px, #ffffff 1px);
-    background-size: 20px 20px;
-    background-position: 0 0, 20px 20px;
-}
-</style>
-
 <template>
     <UPageSection class="max-w-2xl mx-auto">
         <template #header>
