@@ -1,11 +1,5 @@
 <template>
-    <UButton disabled @click="send">Send Request</UButton>
-    <br>
-    code: {{ code }}
-    <br>
-    response: {{ result }}
-    <br>
-    <a :href="oauth2_url">oauth</a>
+    you are being redirected
 </template>
 
 <script setup lang=ts>
@@ -21,12 +15,6 @@ const router = useRouter()
 const user_object = inject<Ref<User>>('user_object')!
 
 
-async function send() {
-    const response = await fetch(`http://localhost:8000/authorize?code=${code.value}`)
-    const data:Auth = await response.json()
-    user_object.value = data.profile
-    console.log(user_object.value.avatar)
-}
 
 onMounted(async () => {
     code.value = route.query.code

@@ -20,7 +20,14 @@
             
             <template #links>
                 <UModal v-model:open="open">
-                    <UButton color="secondary" icon="i-lucide-square-play" variant="solid" label="Get started" />
+                    <UButton
+                    color="secondary"
+                    icon="i-lucide-square-play"
+                    variant="solid"
+                    label="Get started"
+                    v-if="user_object.id"
+                    />
+
 
                     <template #header>
                         <h3 class="text-2xl font-semibold">Get started</h3>
@@ -47,6 +54,16 @@
                     </template>
                 </UModal>
 
+                <UButton
+                color="secondary"
+                icon="logos:discord-icon"
+                variant="solid"
+                label="Login"
+                :to="oauth2_url"
+                v-if="!user_object.id"
+                />
+
+
                 <UButton color="neutral" variant="subtle" trailing-icon="i-lucide-arrow-right" to="/about">
                     Learn more
                 </UButton>
@@ -59,11 +76,18 @@
 </template>
 
 <script setup lang="ts">
+import type { User } from '~/types/User';
+
 
 const open = ref(false)
 
 function close() {
     open.value = !open.value
 }
+
+const oauth2_url = inject("oauth2_url")!
+
+const user_object = inject<Ref<User>>("user_object")!
+
 
 </script>
