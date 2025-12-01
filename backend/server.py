@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 from typing import Annotated
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Header
@@ -6,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from tortoise.exceptions import DoesNotExist
 from pydantic import BaseModel
 from database import init_db, close_db
-from models import Profile, Auth, User, Warnings
+from models import ModerationEvents, Profile, Auth, User, EventType
 import httpx
 import secrets
 import random
@@ -45,14 +46,37 @@ class DiscordProfile(BaseModel):
     avatar: str
     email: str
 
-class WarningCreate(BaseModel):
-    issued_by: int
-    reason: str | None = None
-
-
 class WarningEdit(BaseModel):
     reason: str | None = None
     edited_by: int 
+
+class ModerationEventFetchType(str, Enum):
+    ALL = 'all'
+    RECEIVED = 'received'
+    ISSUED = 'issued'
+    EDITED = 'edited'
+class EventFetchType(str, Enum):
+    NOTE = 'Note'
+    WARNING = 'Warning'
+    MUTE = 'Mute'
+    KICK = 'Kick'
+    BAN = 'Ban'
+    TIMEOUT = 'Timeout'
+    ALL = 'All'
+class ModerationEventFetchFilters(BaseModel):
+    event_type: EventFetchType = EventFetchType.ALL
+    issued_before: datetime.datetime | None = None
+    issued_after: datetime.datetime | None = None
+    fetch_type: ModerationEventFetchType = ModerationEventFetchType.RECEIVED
+
+class ModerationEventCreate(BaseModel):
+    issued_by: int
+    reason: str | None = None
+    event_type: EventType
+
+class ModerationEventEdit(BaseModel):
+    reason: str | None = None
+    edited_by: int
 
 
 # this just defines the lifespan on the app, like an event, so this runs on startup, then yeilds to shutdown.
@@ -161,62 +185,88 @@ async def profile_create(headers:Annotated[RouteHeaders, Header()], profile:Prof
     print(profile)
     return {'success': True}
 
-@app.get('/moderation/warnings/{user_id}')
-async def fetch_warnings(user_id: int, headers:Annotated[RouteHeaders, Header()]):
+@app.get('/moderation/events/{user_id}')
+async def fetch_warnings(user_id: int, filters: ModerationEventFetchFilters, headers:Annotated[RouteHeaders, Header()]):
+   # TODO: Bot Authorization Check Here
+    print(headers)
+    try:
+        user = await User.get(user_id=user_id)
+
+        query = ModerationEvents.all()
+
+        if filters.fetch_type == ModerationEventFetchType.RECEIVED:
+            query =  query.filter(warned_user=user)
+        elif filters.fetch_type == ModerationEventFetchType.ISSUED:
+            query =  query.filter(issued_by=user)
+        elif filters.fetch_type == ModerationEventFetchType.EDITED:
+            query = query.filter(last_edited_by=user)
+
+        if filters.event_type != EventFetchType.ALL:
+            query = query.filter(event_type=filters.event_type.value)
+        
+        if filters.issued_before:
+            query = query.filter(issued_at__lt=filters.issued_before)
+
+        if filters.issued_after:
+            query = query.filter(issued_at__gt=filters.issued_after)
+
+        events = await query.order_by('-issued_at').all()
+
+    except DoesNotExist as error:
+        return {'success': False, 'message': 'User not found'}
+        
+    else:
+        return {'success': True, 'events': [{
+            'issued_at': event.issued_at,
+            'issued_by': event.issued_by.user_id,
+            'reason': event.reason,
+            'last_edited_by': event.last_edited_by.user_id if event.last_edited_by else None,
+            'last_edited_at': event.last_edited_at if event.last_edited_at else None,
+            'event_type': event.event_type.value,
+            'id': event.id
+        } for event in events
+        ]}
+
+@app.post('/moderation/eventss/{user_id}')
+async def issue_warning(user_id: int, event: ModerationEventCreate, headers:Annotated[RouteHeaders, Header()]):
+   # TODO: Bot Authorization Check Here
     print(headers)
 
-    user = await User.get(user_id=user_id).prefetch_related('warnings_received')
-    warnings = user.warnings_received
-
-
-    
-    return {'success': True, 'warnings': [{
-        'issued_at': warning.issued_at,
-        'issued_by': warning.issued_by.user_id,
-        'reason': warning.reason,
-        'last_edited_by': warning.last_edited_by.user_id if warning.last_edited_by else None,
-        'last_edited_at': warning.last_edited_at
-    } for warning in warnings
-    ]}
-
-@app.post('/moderation/warnings/{user_id}')
-async def issue_warning(user_id: int, warning: WarningCreate, headers:Annotated[RouteHeaders, Header()]):
-    print(headers)
-
-    issued_by_id = warning.issued_by
-    reason = warning.reason
+    issued_by_id = event.issued_by
+    reason = event.reason
 
 
 
     user_ = await User.get_or_create(user_id=user_id)
     issued_by_ = await User.get_or_create(user_id=issued_by_id)
 
-    warning = await Warnings.create(
+    event_ = await ModerationEvents.create(
         warned_user=user_,
         issued_by=issued_by_,
+        event_type=event.event_type,
         reason=reason
     )
 
-    return {'success': True, 'warning_id': warning.id}
-
-@app.patch('/moderation/warnings')
-async def edit_warning(warning: WarningEdit, headers:Annotated[RouteHeaders, Header()]):
+    return {'success': True, 'event_id': event_.id}
+@app.patch('/moderation/events/{event_id}')
+async def edit_warning(event_id: int, event: ModerationEventEdit, headers:Annotated[RouteHeaders, Header()]):
+    # TODO: Bot Authorization Check Here
     print(headers)
 
-    warning_ = await Warnings.get(id=warning.warning_id)
-    warning_.reason = warning.reason
-    warning_.last_edited_by = await User.get_or_create(user_id=warning.edited_by)
-    warning_.last_edited_at = datetime.utcnow()
-    await warning_.save()
-
+    event_ = await ModerationEvents.get(id=event_id)
+    event_.reason = event.reason
+    event_.last_edited_by = await User.get_or_create(user_id=event.edited_by)
+    event_.last_edited_at = datetime.utcnow()
+    await event_.save()
     return {'success': True}
 
-@app.delete('/moderation/warnings/{warning_id}')
-async def delete_warning(warning_id: int, headers:Annotated[RouteHeaders, Header()]):
+@app.delete('/moderation/events/{event_id}')
+async def delete_warning(event_id: int, headers:Annotated[RouteHeaders, Header()]):
+    # TODO: Bot Authorization Check Here
     print(headers)
 
-    warning_ = await Warnings.get(id=warning_id)
-    await warning_.delete()
+    event_ = await ModerationEvents.get(id=event_id)
+    await event_.delete()
 
     return {'success': True}
 
