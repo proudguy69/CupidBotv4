@@ -1,3 +1,4 @@
+import datetime
 from typing import Annotated
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Header
@@ -5,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from tortoise.exceptions import DoesNotExist
 from pydantic import BaseModel
 from database import init_db, close_db
-from models import Profile, Auth
+from models import Profile, Auth, User, Warnings
 import httpx
 import secrets
 import random
@@ -43,6 +44,15 @@ class DiscordProfile(BaseModel):
     global_name: str
     avatar: str
     email: str
+
+class WarningCreate(BaseModel):
+    issued_by: int
+    reason: str | None = None
+
+
+class WarningEdit(BaseModel):
+    reason: str | None = None
+    edited_by: int 
 
 
 # this just defines the lifespan on the app, like an event, so this runs on startup, then yeilds to shutdown.
@@ -150,3 +160,63 @@ async def profile_create(headers:Annotated[RouteHeaders, Header()], profile:Prof
     print(headers)
     print(profile)
     return {'success': True}
+
+@app.get('/moderation/warnings/{user_id}')
+async def fetch_warnings(user_id: int, headers:Annotated[RouteHeaders, Header()]):
+    print(headers)
+
+    user = await User.get(user_id=user_id).prefetch_related('warnings_received')
+    warnings = user.warnings_received
+
+
+    
+    return {'success': True, 'warnings': [{
+        'issued_at': warning.issued_at,
+        'issued_by': warning.issued_by.user_id,
+        'reason': warning.reason,
+        'last_edited_by': warning.last_edited_by.user_id if warning.last_edited_by else None,
+        'last_edited_at': warning.last_edited_at
+    } for warning in warnings
+    ]}
+
+@app.post('/moderation/warnings/{user_id}')
+async def issue_warning(user_id: int, warning: WarningCreate, headers:Annotated[RouteHeaders, Header()]):
+    print(headers)
+
+    issued_by_id = warning.issued_by
+    reason = warning.reason
+
+
+
+    user_ = await User.get_or_create(user_id=user_id)
+    issued_by_ = await User.get_or_create(user_id=issued_by_id)
+
+    warning = await Warnings.create(
+        warned_user=user_,
+        issued_by=issued_by_,
+        reason=reason
+    )
+
+    return {'success': True, 'warning_id': warning.id}
+
+@app.patch('/moderation/warnings')
+async def edit_warning(warning: WarningEdit, headers:Annotated[RouteHeaders, Header()]):
+    print(headers)
+
+    warning_ = await Warnings.get(id=warning.warning_id)
+    warning_.reason = warning.reason
+    warning_.last_edited_by = await User.get_or_create(user_id=warning.edited_by)
+    warning_.last_edited_at = datetime.utcnow()
+    await warning_.save()
+
+    return {'success': True}
+
+@app.delete('/moderation/warnings/{warning_id}')
+async def delete_warning(warning_id: int, headers:Annotated[RouteHeaders, Header()]):
+    print(headers)
+
+    warning_ = await Warnings.get(id=warning_id)
+    await warning_.delete()
+
+    return {'success': True}
+

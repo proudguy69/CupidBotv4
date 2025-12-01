@@ -21,3 +21,24 @@ class Auth(Model):
     web_token = fields.TextField()
     token_type = fields.TextField()
     # add jwt and other here
+
+class User(Model):
+    user_id = fields.BigIntField(primary_key=True)
+    warnings_received = fields.ForeignKeyField('models.Warnings', related_name='warnings', null=True)
+    issued_warnings = fields.ForeignKeyField('models.Warnings', related_name='issued_warnings', null=True)
+    edited_warnings = fields.ForeignKeyField('models.Warnings', related_name='edited_warnings', null=True)
+
+    class Meta:
+        table = "users"
+
+class Warnings(Model):
+    id = fields.IntField(primary_key=True, generated=True)
+    issued_at = fields.DatetimeField(auto_now_add=True)
+    issued_by = fields.ForeignKeyField('models.User', related_name='issued_warnings')
+    reason = fields.TextField()
+    warned_user = fields.ForeignKeyField('models.User', related_name='warnings')
+    last_edited_by = fields.ForeignKeyField('models.User', related_name='edited_warnings', null=True)
+    last_edited_at = fields.DatetimeField(null=True)
+    class Meta:
+        table = "warnings"
+
