@@ -24,10 +24,7 @@ class Auth(Model):
 
 class User(Model):
     user_id = fields.BigIntField(primary_key=True)
-    warnings_received = fields.ForeignKeyField('models.Warnings', related_name='warnings', null=True)
-    issued_warnings = fields.ForeignKeyField('models.Warnings', related_name='issued_warnings', null=True)
-    edited_warnings = fields.ForeignKeyField('models.Warnings', related_name='edited_warnings', null=True)
-
+  
     class Meta:
         table = "users"
 
