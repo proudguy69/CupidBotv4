@@ -227,7 +227,7 @@ async def fetch_warnings(user_id: int, filters: ModerationEventFetchFilters, hea
         } for event in events
         ]}
 
-@app.post('/moderation/eventss/{user_id}')
+@app.post('/moderation/events/{user_id}')
 async def issue_warning(user_id: int, event: ModerationEventCreate, headers:Annotated[RouteHeaders, Header()]):
    # TODO: Bot Authorization Check Here
     print(headers)
