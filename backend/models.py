@@ -24,6 +24,8 @@ class Auth(Model):
 
 class User(Model):
     user_id = fields.BigIntField(primary_key=True)
+    is_banned = fields.BooleanField(default=False)
+
   
     class Meta:
         table = "users"
