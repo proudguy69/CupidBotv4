@@ -33,9 +33,9 @@ class User(Model):
 class Warnings(Model):
     id = fields.IntField(primary_key=True, generated=True)
     issued_at = fields.DatetimeField(auto_now_add=True)
-    issued_by = fields.ForeignKeyField('models.User', related_name='issued_warnings')
+    issued_by = fields.ForeignKeyField('models.User', related_name='warnings_issued')
     reason = fields.TextField()
-    warned_user = fields.ForeignKeyField('models.User', related_name='warnings')
+    warned_user = fields.ForeignKeyField('models.User', related_name='warnings_received')
     last_edited_by = fields.ForeignKeyField('models.User', related_name='edited_warnings', null=True)
     last_edited_at = fields.DatetimeField(null=True)
     class Meta:
