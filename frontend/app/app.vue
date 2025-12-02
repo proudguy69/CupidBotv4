@@ -10,8 +10,10 @@ import type { User } from './types/User';
 
 const oauth2_url = {
   dev: "https://discord.com/oauth2/authorize?client_id=1442284848109846598&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauthorize&scope=identify+guilds.join+email",
-  prod: ""
-}.dev
+  prod: "https://discord.com/oauth2/authorize?client_id=1442284848109846598&response_type=code&redirect_uri=https%3A%2F%2Fcupidbot.xyz%2Fauthorize&scope=identify+guilds+email"
+}.prod
+
+
 
 provide("oauth2_url", oauth2_url)
 

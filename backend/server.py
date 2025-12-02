@@ -15,6 +15,11 @@ CLIENT_TOKEN = os.environ.get('CLIENT_TOKEN')
 CLIENT_ID = 1442284848109846598
 CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
 
+redirect_uri = {
+    'dev': 'http://localhost:3000/authorize',
+    'prod': 'http://cupidbot.xyz/authorize'
+}.get('prod')
+
 class RouteHeaders(BaseModel):
     Authorization : str
 
