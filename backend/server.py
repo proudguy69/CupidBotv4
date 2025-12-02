@@ -192,7 +192,7 @@ async def fetch_warnings(user_id: int, filters: ModerationEventFetchFilters, hea
     try:
         user = await User.get(user_id=user_id)
 
-        query = ModerationEvents.all()
+        query = user.moderation_events_received
 
         if filters.fetch_type == ModerationEventFetchType.RECEIVED:
             query =  query.filter(warned_user=user)
@@ -210,7 +210,7 @@ async def fetch_warnings(user_id: int, filters: ModerationEventFetchFilters, hea
         if filters.issued_after:
             query = query.filter(issued_at__gt=filters.issued_after)
 
-        events = await query.order_by('-issued_at').all()
+        events = await query.order_by('-issued_at').select_related('issued_by', 'last_edited_by').all()
 
     except DoesNotExist as error:
         return {'success': False, 'message': 'User not found'}
@@ -228,17 +228,19 @@ async def fetch_warnings(user_id: int, filters: ModerationEventFetchFilters, hea
         ]}
 
 @app.post('/moderation/events/{user_id}')
-async def issue_warning(user_id: int, event: ModerationEventCreate, headers:Annotated[RouteHeaders, Header()]):
+async def issue_warning(user_id:int, event: ModerationEventCreate,  headers:Annotated[RouteHeaders, Header()]):
    # TODO: Bot Authorization Check Here
-    print(headers)
+    
+    print(user_id)
 
     issued_by_id = event.issued_by
     reason = event.reason
 
+    
 
 
-    user_ = await User.get_or_create(user_id=user_id)
-    issued_by_ = await User.get_or_create(user_id=issued_by_id)
+    user_, _ = await User.get_or_create(user_id=user_id)
+    issued_by_, _ = await User.get_or_create(user_id=issued_by_id)
 
     event_ = await ModerationEvents.create(
         warned_user=user_,
@@ -255,8 +257,8 @@ async def edit_warning(event_id: int, event: ModerationEventEdit, headers:Annota
 
     event_ = await ModerationEvents.get(id=event_id)
     event_.reason = event.reason
-    event_.last_edited_by = await User.get_or_create(user_id=event.edited_by)
-    event_.last_edited_at = datetime.utcnow()
+    event_.last_edited_by, _ = await User.get_or_create(user_id=event.edited_by)
+    event_.last_edited_at = datetime.datetime.now()
     await event_.save()
     return {'success': True}
 
