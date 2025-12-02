@@ -31,7 +31,15 @@ import type { Auth } from '~/types/Auth'
 import type { User } from '~/types/User'
 
 // this is a ref
-const user_object = inject<Ref<User>>("user_object")!
+// added fallback incase the user is not logged in (idk how to fix this)
+const user_object = inject<Ref<User>>("user_object", ref({
+  id: null,
+  username: null,
+  global_name: null,
+  avatar: null,
+  web_token: null
+}))
+
 
 async function simulateAuth() {
     const response = await fetch(`http://localhost:8000/authorize?code=fake`)
