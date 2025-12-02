@@ -23,6 +23,7 @@ class ProfileBase(BaseModel):
     age : int
     gender : str
     gender_specified: str|None =None
+    pronouns: str|None
     sexuality : str
     bio: str
 
@@ -119,6 +120,14 @@ app.add_middleware(
 #     print(new_profile.id)
 #     return {"success": True, "profile": profile}
 
+async def check_auth(token:str) -> tuple[bool, Auth|None]:
+    print("We got here??????")
+    try:
+        auth = await Auth.get(web_token=token)
+    except DoesNotExist:
+        return False, None
+    return True, auth
+
 @app.get('/authorize')
 async def authorize(code):
     exchange_data:DiscordExchange|dict = await exchange_code(code)
@@ -147,6 +156,20 @@ async def check_authorization(token):
 
 @app.post('/profile/create')
 async def profile_create(headers:Annotated[RouteHeaders, Header()], profile:ProfileBase):
-    print(headers)
-    print(profile)
+    authorized, auth = await check_auth(headers.Authorization)
+    print("WE GOT HERE??")
+    if not authorized: 
+        return {'success': False, 'message': 'User is not authorized!'}
+    try:
+        await Profile.create(
+            user_id=auth.id,
+            name=profile.name,
+            pronouns=profile.pronouns,
+            age=profile.age,
+            gender=profile.gender,
+            sexuality=profile.sexuality,
+            bio=profile.bio
+        )
+    except:
+        return {'success': False, 'message': 'profile already exists!'}
     return {'success': True}

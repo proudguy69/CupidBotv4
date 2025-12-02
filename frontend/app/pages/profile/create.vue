@@ -60,6 +60,14 @@
 
 <script setup>
 
+const user_object = inject('user_object')
+const router = useRouter()
+if (!user_object.value.id) {
+    router.push('/')
+}
+
+const toast = useToast()
+
 const genders = [
     'Male',
     'Female',
@@ -113,17 +121,24 @@ async function submit() {
         age: state.age,
         gender: state.gender,
         sexuality: state.sexuality,
-        bio: state.bio
+        bio: state.bio,
+        pronouns: null
     }
+    const token = localStorage.getItem('web_token')
     const response = await fetch('http://localhost:8000/profile/create', {
         method: 'POST',
         headers: {
-            'Authorization': 'test',
+            'Authorization': token,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
     })
     const data = await response.json()
+    if (data.success) {
+        toast.add({title: 'Success', description: "profile created successfully!"})
+    } else {
+        toast.add({title: 'Error', description: data.message, color: 'error'})
+    }
     console.log(data)
 }
 

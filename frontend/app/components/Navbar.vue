@@ -18,7 +18,7 @@
       }" to="/profile/settings">
         {{ user_object.username }}
       </UButton>
-      <UColorModeButton />
+      <UColorModeButton disabled v-if="false" />
     </template>
   </UHeader>
   <NuxtPage />

@@ -9,9 +9,9 @@ async def init_db():
     )
 
     # clean out db for testing
-    conn = connections.get('default')
-    await conn.execute_query('DROP SCHEMA public CASCADE;')
-    await conn.execute_query("CREATE SCHEMA public;")
+    # conn = connections.get('default')
+    # await conn.execute_query('DROP SCHEMA public CASCADE;')
+    # await conn.execute_query("CREATE SCHEMA public;")
     
     await Tortoise.generate_schemas()
 
