@@ -185,8 +185,8 @@ async def authorize(code):
 async def check_authorization(token):
     try:
         auth = await Auth.get(web_token=token)
-    except DoesNotExist as error:
-        return {"success": False}
+    except DoesNotExist:
+        return {"success": False, "message": "invalid token"}
     profile = await get_discord_profile(auth.access_token)
     return {"success": True, "profile": profile.model_dump()}
 
@@ -236,7 +236,7 @@ async def fetch_warnings(
             .all()
         )
 
-    except DoesNotExist as error:
+    except DoesNotExist:
         response.status_code = 404
         return {"success": False, "message": "User not found"}
 
@@ -302,7 +302,7 @@ async def edit_warning(
         await event_.save()
 
         return {"success": True}
-    except DoesNotExist as error:
+    except DoesNotExist:
         response.status_code = 404
         return {"success": False, "message": "Invalid Moderation Event ID"}
 
@@ -318,6 +318,6 @@ async def delete_warning(
         event_ = await ModerationEvents.get(id=event_id)
         await event_.delete()
         return {"success": True}
-    except DoesNotExist as error:
+    except DoesNotExist:
         response.status_code = 404
         return {"success": False, "message": "Invalid Moderation Event ID"}
