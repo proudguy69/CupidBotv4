@@ -200,7 +200,47 @@ async def profile_create(
     return {"success": True}
 
 
-@app.get("/moderation/events/{user_id}")
+@app.get(
+    "/moderation/events/{user_id}",
+    response_model=ModerationEventFetchFilters,
+    summary="Fetch moderation events tied to a user.",
+    description="Fetch moderation events for a user with optional filters for event type,  date range.",
+    responses={
+        200: {"description": "Successful Response",
+              "content": {"application/json": {
+                    "example": {
+                        "success": True,
+                        "events": [
+                            {
+                                "issued_at": "2024-01-01T12:00:00Z",
+                                "issued_by": 123456789012345678,
+                                "reason": "Inappropriate behavior",
+                                "last_edited_by": 987654321098765432,
+                                "last_edited_at": "2024-01-02T15:30:00Z",
+                                "event_type": "Warning",
+                                "id": 1
+                            },
+                            {
+                                "issued_at": "2024-02-15T09:45:00Z",
+                                "issued_by": 123456789012345678,
+                                "reason": "Spamming",
+                                "last_edited_by": None,
+                                "last_edited_at": None,
+                                "event_type": "Mute",
+                                "id": 2
+                            }
+                        ]
+                    }
+              }}},
+        404: {"description": "User Not Found",
+              "content": {"application/json": {
+                  "example": {
+                      "success": False,
+                      "message": "User not found"
+                  }
+              }}},
+    }
+)
 async def fetch_warnings(
     user_id: int,
     filters: ModerationEventFetchFilters,
@@ -262,7 +302,21 @@ async def fetch_warnings(
         }
 
 
-@app.post("/moderation/events/{user_id}")
+@app.post("/moderation/events/{user_id}",
+          response_model=ModerationEventCreate,
+          summary="Issue a moderation event to a user.",
+          description="Issue a moderation event (e.g., warning, mute) to a user.",
+            responses={
+                200: {"description": "Successful Response",
+                        "content": {"application/json": {
+                            "example": {
+                                "success": True,
+                                "event_id": 1
+                            }
+                        }}},
+              
+            }
+            )
 async def issue_warning(
     user_id: int,
     event: ModerationEventCreate,
@@ -285,7 +339,25 @@ async def issue_warning(
     return {"success": True, "event_id": event_.id}
 
 
-@app.patch("/moderation/events/{event_id}")
+@app.patch("/moderation/events/{event_id}",
+           summary="Edit a moderation event.",
+           description="Edit the reason for a moderation event.",
+           responses={
+               200: {"description": "Successful Response",
+                      "content": {"application/json": {
+                          "example": {
+                              "success": True
+                          }
+                      }}},
+               404: {"description": "Event Not Found",
+                      "content": {"application/json": {
+                          "example": {
+                              "success": False,
+                              "message": "Invalid Moderation Event ID"
+                          }
+                      }}},
+           }
+           )
 async def edit_warning(
     event_id: int,
     event: ModerationEventEdit,
@@ -307,7 +379,25 @@ async def edit_warning(
         return {"success": False, "message": "Invalid Moderation Event ID"}
 
 
-@app.delete("/moderation/events/{event_id}")
+@app.delete("/moderation/events/{event_id}",
+            summary="Delete a moderation event.",
+           description="Delete a moderation event by its ID.",
+           responses={
+               200: {"description": "Successful Response",
+                      "content": {"application/json": {
+                          "example": {
+                              "success": True
+                          }
+                      }}},
+               404: {"description": "Event Not Found",
+                      "content": {"application/json": {
+                          "example": {
+                              "success": False,
+                              "message": "Invalid Moderation Event ID"
+                          }
+                      }}},
+           }
+           )
 async def delete_warning(
     event_id: int, headers: Annotated[RouteHeaders, Header()], response: Response
 ):
