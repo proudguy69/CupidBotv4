@@ -2,6 +2,7 @@
 
 from tortoise import Tortoise, connections
 
+
 async def init_db():
     await Tortoise.init(
         db_url="postgres://postgres:cupiddev@localhost:5432/postgres",
@@ -9,10 +10,10 @@ async def init_db():
     )
 
     # clean out db for testing
-    conn = connections.get('default')
-    await conn.execute_query('DROP SCHEMA public CASCADE;')
+    conn = connections.get("default")
+    await conn.execute_query("DROP SCHEMA public CASCADE;")
     await conn.execute_query("CREATE SCHEMA public;")
-    
+
     await Tortoise.generate_schemas()
 
 
