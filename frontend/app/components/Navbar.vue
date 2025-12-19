@@ -4,11 +4,11 @@
       Cupidv4
     </template>
 
-    <UNavigationMenu :items="items" content-orientation="verticle" />
+    <UNavigationMenu :items="items" content-orientation="vertical" />
     <template #right>
 
 
-      <UButton v-if="!user_object.username" variant="subtle" color="secondary" icon="logos:discord-icon"
+      <UButton v-if="!user_object.username" variant="subtle" color="secondary" icon="logos:discord-icon" class="dark:text-white"
         :to="oauth2_url">
         Login
       </UButton>

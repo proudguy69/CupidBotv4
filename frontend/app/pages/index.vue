@@ -7,7 +7,7 @@
 <template>
     <Navbar />
 
-    <div class="background">
+    <div :class="isDark ? 'background-dark' : 'background'">
         <UPageHero class="bg-transparent" orientation="horizontal" reverse>
 
             <template #title>
@@ -15,24 +15,19 @@
             </template>
 
             <template #description>
-                <p class="text-lg font-raleway text-gray-800">Let's get you started.</p>
+                <p class="text-lg font-raleway text-gray-800 dark:text-white">Let's get you started.</p>
             </template>
-            
+
             <template #links>
                 <UModal v-model:open="open">
-                    <UButton
-                    color="secondary"
-                    icon="i-lucide-square-play"
-                    variant="solid"
-                    label="Get started"
-                    v-if="user_object.id"
-                    />
+                    <UButton color="secondary" icon="i-lucide-square-play" variant="solid" label="Get started"
+                        v-if="user_object.id" />
 
 
                     <template #header>
                         <h3 class="text-2xl font-semibold">Get started</h3>
                         <p class="text-gray-500">Ready to create your profile?</p>
-                        <UButton icon="i-lucide-x" class="ml-auto" @click="close"/>
+                        <UButton icon="i-lucide-x" class="ml-auto" @click="close" />
                     </template>
 
                     <template #body>
@@ -54,14 +49,8 @@
                     </template>
                 </UModal>
 
-                <UButton
-                color="secondary"
-                icon="logos:discord-icon"
-                variant="solid"
-                label="Login"
-                :to="oauth2_url"
-                v-if="!user_object.id"
-                />
+                <UButton color="secondary" icon="logos:discord-icon" variant="solid" label="Login" :to="oauth2_url"
+                    v-if="!user_object.id" class="dark:text-white"/>
 
 
                 <UButton color="neutral" variant="subtle" trailing-icon="i-lucide-arrow-right" to="/about">
@@ -77,6 +66,11 @@
 
 <script setup lang="ts">
 import type { User } from '~/types/User';
+
+const colorMode = useColorMode()
+
+const isDark = computed(() => colorMode.preference === 'dark')
+
 
 
 const open = ref(false)

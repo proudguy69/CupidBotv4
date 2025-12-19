@@ -29,12 +29,21 @@ provide('user_object', user_object)
 
 <style>
 body {
-    background-color: var(--color-bg-alt);
-    font-family: 'Raleway', sans-serif;
-    background-image:
-        radial-gradient(#A45D5D 1px, transparent 1px),
-        radial-gradient(#A45D5D 1px, #ffffff 1px);
-    background-size: 20px 20px;
-    background-position: 0 0, 20px 20px;
+  background-color: var(--color-bg-alt);
+  font-family: 'Raleway', sans-serif;
+  background-image:
+    radial-gradient(#A45D5D 1px, transparent 1px),
+    radial-gradient(#A45D5D 1px, #ffffff 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 20px 20px;
 }
+
+/* Dark mode */
+.dark body {
+  background-color: #121212;
+  background-image:
+    radial-gradient(#8B5A2B 1px, transparent 1px),
+    radial-gradient(#8B5A2B 1px, #121212 1px);
+}
+
 </style>
